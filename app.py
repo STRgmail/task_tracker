@@ -16,8 +16,17 @@ def get_db_connection():
 
 @app.route('/')
 def index():
+    if 'username' not in session:
+        return redirect(url_for('login'))
     conn = get_db_connection()
-    tasks = conn.execute('SELECT * FROM tasks').fetchall()
+    if session.get('role') == 'admin':
+        tasks = conn.execute('SELECT * FROM tasks').fetchall()
+    else:
+        username = session.get('username')
+        tasks = conn.execute(
+            'SELECT * FROM tasks WHERE assigned_to = ? OR title LIKE ?', 
+            (username, f'%{username}%')
+        ).fetchall()
     users = conn.execute('SELECT username FROM users').fetchall()
     conn.close()
     return render_template('index.html', tasks=tasks, users=users)
@@ -83,6 +92,9 @@ def update_status(task_id):
 
 @app.route('/edit/<int:task_id>', methods=['GET'])
 def edit_task(task_id):
+    if 'username' not in session:
+        flash('You must be logged in to edit a task.')
+        return redirect(url_for('login'))
     conn = get_db_connection()
     task = conn.execute('SELECT * FROM tasks WHERE id = ?', (task_id,)).fetchone()
     users = conn.execute('SELECT username FROM users').fetchall()
@@ -91,6 +103,9 @@ def edit_task(task_id):
 
 @app.route('/update/<int:task_id>', methods=['POST'])
 def update_task(task_id):
+    if 'username' not in session:
+        flash('You must be logged in to update a task.')
+        return redirect(url_for('login'))
     title = request.form['title']
     assigned_to = request.form['assigned_to']
     due_date_str = request.form['due_date']
