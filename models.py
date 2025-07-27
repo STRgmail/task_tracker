@@ -7,7 +7,7 @@ cursor.execute('''
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         title TEXT NOT NULL,
         assigned_to TEXT NOT NULL,
-        status TEXT NOT NULL,
+        status TEXT NOT NULL default 'To Do',
         due_date TEXT
     )
 ''')
