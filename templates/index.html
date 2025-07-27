@@ -27,7 +27,16 @@
     </style>
 </head>
 <body>
+    <div style="display: flex; justify-content: flex-end; align-items: center; gap: 10px;">
+        {% if session.username %}
+            <span>Welcome, {{ session.username }}!</span>
+            <form action="{{ url_for('logout') }}" method="get" style="display:inline;">
+                <button type="submit">Logout</button>
+            </form>
+        {% endif %}
+    </div>
     <h1>Task Dashboard</h1>
+    {% if session.username %}
     <form action="/add" method="post">
         <input type="text" name="title" placeholder="Task Title" required>
         <select name="assigned_to" required>
@@ -44,6 +53,7 @@
         </select>
         <button type="submit">Add Task</button>
     </form>
+    {% endif %}
 
     <div class="board-container">
         <div class="board">

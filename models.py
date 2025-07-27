@@ -22,5 +22,14 @@ def init_db():
             FOREIGN KEY (assigned_to) REFERENCES users(username)
         )
     ''')
+    # Optional: trigger to auto-update updated_at
+    conn.execute('''
+        CREATE TRIGGER IF NOT EXISTS update_task_updated_at
+        AFTER UPDATE ON tasks
+        FOR EACH ROW
+        BEGIN
+            UPDATE tasks SET updated_at = CURRENT_TIMESTAMP WHERE id = OLD.id;
+        END;
+    ''')
     conn.commit()
     conn.close()

@@ -1,0 +1,64 @@
+````html
+````html
+````html
+````html
+````html
+````html
+````html
+````html
+````html
+````html
+````html
+````html
+````html
+````html
+````html
+````html
+````html
+````html
+````html
+````html
+````html
+````html
+````html
+````html
+````html
+````html
+````html
+````html
+````html
+````html
+````html
+````html
+````html
+````html
+````html
+````html
+ask_tracker\templates\edit_user.html -->
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Edit User</title>
+</head>
+<body>
+    <h2>Edit User</h2>
+    <form method="post">
+        <input type="text" name="username" value="{{ user.username }}" required>
+        <select name="role" required>
+            <option value="user" {% if user.role == 'user' %}selected{% endif %}>User</option>
+            <option value="admin" {% if user.role == 'admin' %}selected{% endif %}>Admin</option>
+        </select>
+        <button type="submit">Update</button>
+    </form>
+    <a href="{{ url_for('list_users') }}">Back to Users</a>
+    {% with messages = get_flashed_messages() %}
+      {% if messages %}
+        <ul>
+        {% for message in messages %}
+          <li>{{ message }}</li>
+        {% endfor %}
+        </ul>
+      {% endif %}
+    {% endwith %}
+</body>
+</html>

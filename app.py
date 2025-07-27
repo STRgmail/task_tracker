@@ -24,21 +24,41 @@ def index():
 
 @app.route('/add', methods=['POST'])
 def add():
+    if 'username' not in session:
+        flash('You must be logged in to add a task.')
+        return redirect(url_for('login'))
+
     title = request.form['title']
     assigned_to = request.form['assigned_to']
     due_date_str = request.form['due_date']
     status = request.form['status']
 
+    # Only admin can assign to others
+    if session.get('role') == 'user' and assigned_to != session.get('username'):
+        flash('You are not allowed to assign tasks to other users.')
+        return redirect(request.referrer)
+
+    # --- User existence validation ---
+    conn = get_db_connection()
+    user = conn.execute('SELECT * FROM users WHERE username = ?', (assigned_to,)).fetchone()
+    if not user:
+        conn.close()
+        flash('Assigned user does not exist.')
+        return redirect(request.referrer)
+
+    # --- Due date validation ---
+    today = datetime.today().date()
     if due_date_str:
         due_date = datetime.strptime(due_date_str, '%Y-%m-%d').date()
-        today = datetime.today().date()
         if due_date <= today:
+            conn.close()
             flash('Due date must be in the future!')
             return redirect(request.referrer)
         elif due_date > today + timedelta(days=365):
             flash('Warning: Due date is more than 12 months ahead!')
+    else:
+        due_date = today  # Default to today if not provided
 
-    conn = get_db_connection()
     conn.execute('INSERT INTO tasks (title, assigned_to, status, due_date) VALUES (?, ?, ?, ?)',
                  (title, assigned_to, status, due_date))
     conn.commit()
@@ -143,6 +163,76 @@ def register():
         finally:
             conn.close()
     return render_template('register.html')
+
+# List all users (admin only)
+@app.route('/users')
+def list_users():
+    if session.get('role') != 'admin':
+        flash('Only admins can view users.')
+        return redirect(url_for('index'))
+    conn = get_db_connection()
+    users = conn.execute('SELECT id, username, role FROM users').fetchall()
+    conn.close()
+    return render_template('users.html', users=users)
+
+# Add a new user (admin only)
+@app.route('/users/add', methods=['GET', 'POST'])
+def add_user():
+    if session.get('role') != 'admin':
+        flash('Only admins can add users.')
+        return redirect(url_for('index'))
+    if request.method == 'POST':
+        username = request.form['username']
+        password = request.form['password']
+        role = request.form['role']
+        hashed_pw = generate_password_hash(password)
+        conn = get_db_connection()
+        try:
+            conn.execute('INSERT INTO users (username, password, role) VALUES (?, ?, ?)', (username, hashed_pw, role))
+            conn.commit()
+            flash('User added successfully!')
+            return redirect(url_for('list_users'))
+        except Exception:
+            flash('Username already exists or error occurred.')
+        finally:
+            conn.close()
+    return render_template('add_user.html')
+
+# Edit a user (admin only)
+@app.route('/users/edit/<int:user_id>', methods=['GET', 'POST'])
+def edit_user(user_id):
+    if session.get('role') != 'admin':
+        flash('Only admins can edit users.')
+        return redirect(url_for('index'))
+    conn = get_db_connection()
+    user = conn.execute('SELECT * FROM users WHERE id = ?', (user_id,)).fetchone()
+    if not user:
+        conn.close()
+        flash('User not found.')
+        return redirect(url_for('list_users'))
+    if request.method == 'POST':
+        username = request.form['username']
+        role = request.form['role']
+        conn.execute('UPDATE users SET username = ?, role = ? WHERE id = ?', (username, role, user_id))
+        conn.commit()
+        conn.close()
+        flash('User updated successfully!')
+        return redirect(url_for('list_users'))
+    conn.close()
+    return render_template('edit_user.html', user=user)
+
+# Delete a user (admin only)
+@app.route('/users/delete/<int:user_id>', methods=['POST'])
+def delete_user(user_id):
+    if session.get('role') != 'admin':
+        flash('Only admins can delete users.')
+        return redirect(url_for('index'))
+    conn = get_db_connection()
+    conn.execute('DELETE FROM users WHERE id = ?', (user_id,))
+    conn.commit()
+    conn.close()
+    flash('User deleted successfully!')
+    return redirect(url_for('list_users'))
 
 if __name__ == '__main__':
     app.run(debug=True)
