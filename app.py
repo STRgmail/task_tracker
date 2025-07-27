@@ -1,9 +1,13 @@
-from flask import Flask, render_template, request, redirect, flash
+from flask import Flask, render_template, request, redirect, flash, session, url_for
 from datetime import datetime, timedelta
 import sqlite3
+from werkzeug.security import generate_password_hash, check_password_hash
+from models import init_db
 
 app = Flask(__name__)
 app.secret_key = 'your_secret_key'  # Needed for flashing messages
+
+init_db()
 
 def get_db_connection():
     conn = sqlite3.connect('database.db')
@@ -14,8 +18,9 @@ def get_db_connection():
 def index():
     conn = get_db_connection()
     tasks = conn.execute('SELECT * FROM tasks').fetchall()
+    users = conn.execute('SELECT username FROM users').fetchall()
     conn.close()
-    return render_template('index.html', tasks=tasks)
+    return render_template('index.html', tasks=tasks, users=users)
 
 @app.route('/add', methods=['POST'])
 def add():
@@ -60,8 +65,9 @@ def update_status(task_id):
 def edit_task(task_id):
     conn = get_db_connection()
     task = conn.execute('SELECT * FROM tasks WHERE id = ?', (task_id,)).fetchone()
+    users = conn.execute('SELECT username FROM users').fetchall()
     conn.close()
-    return render_template('edit.html', task=task)
+    return render_template('edit.html', task=task, users=users)
 
 @app.route('/update/<int:task_id>', methods=['POST'])
 def update_task(task_id):
@@ -93,6 +99,50 @@ def delete_task(task_id):
     conn.commit()
     conn.close()
     return redirect('/')
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if request.method == 'POST':
+        username = request.form['username']
+        password = request.form['password']
+        conn = get_db_connection()
+        user = conn.execute('SELECT * FROM users WHERE username = ?', (username,)).fetchone()
+        conn.close()
+        if user and check_password_hash(user['password'], password):
+            session['user_id'] = user['id']
+            session['username'] = user['username']
+            session['role'] = user['role']
+            return redirect(url_for('index'))
+        else:
+            flash('Invalid username or password')
+    return render_template('login.html')
+
+@app.route('/logout')
+def logout():
+    session.clear()
+    return redirect(url_for('login'))
+
+@app.route('/register', methods=['GET', 'POST'])
+def register():
+    if request.method == 'POST':
+        username = request.form['username']
+        password = request.form['password']
+        role = request.form['role']
+        hashed_pw = generate_password_hash(password)
+        conn = get_db_connection()
+        try:
+            conn.execute(
+                'INSERT INTO users (username, password, role) VALUES (?, ?, ?)',
+                (username, hashed_pw, role)
+            )
+            conn.commit()
+            flash('User registered successfully!')
+            return redirect('/login')
+        except Exception as e:
+            flash('Username already exists or error occurred.')
+        finally:
+            conn.close()
+    return render_template('register.html')
 
 if __name__ == '__main__':
     app.run(debug=True)

@@ -7,7 +7,11 @@
     <h1>Edit Task</h1>
     <form action="{{ url_for('update_task', task_id=task.id) }}" method="post">
         <input type="text" name="title" value="{{ task.title }}" required>
-        <input type="text" name="assigned_to" value="{{ task.assigned_to }}" required>
+        <select name="assigned_to" required>
+            {% for user in users %}
+                <option value="{{ user['username'] }}" {% if task and task.assigned_to == user['username'] %}selected{% endif %}>{{ user['username'] }}</option>
+            {% endfor %}
+        </select>
         <input type="date" name="due_date" value="{{ task.due_date }}" data-warning-id="due-warning-{{ task.id }}">
         <span id="due-warning-{{ task.id }}" style="color:red"></span>
         <select name="status">
