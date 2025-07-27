@@ -1,15 +1,51 @@
 /* static/style.css */
 
 body {
-    font-family: Arial, sans-serif;
-    margin: 40px;
-    background-color: #f5f5f5;
+    font-family: 'Segoe UI', Arial, sans-serif;
+    margin: 0;
+    background: #f5f6fa;
     color: #333;
+}
+
+.header-bar {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 16px;
+    background: #2d3e50;
+    color: #fff;
+    padding: 12px 24px;
+    border-radius: 8px 8px 0 0;
+}
+
+.header-bar span {
+    font-weight: bold;
+    display: inline-block;
+    vertical-align: middle;
+}
+
+.header-bar form {
+    margin: 0;
+    display: inline-block;
+}
+
+.header-bar button {
+    background: #e74c3c;
+    color: #fff;
+    border: none;
+    padding: 6px 14px;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.header-bar button:hover {
+    background: #c0392b;
 }
 
 h1 {
     text-align: center;
-    color: #2c3e50;
+    margin-top: 24px;
+    color: #2d3e50;
 }
 
 form {
@@ -20,36 +56,74 @@ form {
 }
 
 input[type="text"],
-input[type="date"] {
+input[type="date"],
+select {
     padding: 8px;
     border: 1px solid #ccc;
     border-radius: 4px;
 }
 
-button {
-    padding: 8px 12px;
-    background-color: #3498db;
-    color: white;
+button,
+input[type="submit"] {
+    padding: 8px 14px;
+    background: #3498db;
+    color: #fff;
     border: none;
     border-radius: 4px;
     cursor: pointer;
 }
 
-button:hover {
-    background-color: #2980b9;
+button:hover,
+input[type="submit"]:hover {
+    background: #2980b9;
+}
+
+.board-container {
+    display: flex;
+    gap: 24px;
+    margin: 0 24px 24px 24px;
+}
+
+.board {
+    flex: 1;
+    background: #f4f4f4;
+    padding: 16px;
+    border-radius: 10px;
+    min-width: 250px;
+    box-shadow: 0 2px 8px rgba(44, 62, 80, 0.08);
+}
+
+.board h2 {
+    text-align: center;
+    color: #2980b9;
+    margin-bottom: 18px;
+}
+
+.task-item {
+    background: #fff;
+    margin-bottom: 14px;
+    padding: 12px;
+    border-radius: 7px;
+    box-shadow: 0 1px 3px #ccc;
+    transition: box-shadow 0.2s;
+}
+
+.task-item:hover {
+    box-shadow: 0 4px 12px #b2bec3;
 }
 
 ul {
     list-style-type: none;
     padding: 0;
-    max-width: 600px;
-    margin: auto;
 }
 
 li {
-    background-color: white;
     margin-bottom: 8px;
-    padding: 12px;
-    border-radius: 4px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.flash-message {
+    color: #e74c3c;
+    text-align: center;
+    margin-bottom: 16px;
+    font-weight: bold;
 }
