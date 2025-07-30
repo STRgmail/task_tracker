@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Overdue Tasks</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <style>
+        .overdue-container {
+            max-width: 900px;
+            margin: 40px auto;
+            background: #fff;
+            padding: 24px 32px;
+            border-radius: 10px;
+            box-shadow: 0 2px 12px #b2bec3;
+        }
+        .overdue-title {
+            color: #e74c3c;
+            text-align: center;
+            margin-bottom: 24px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+            text-align: left;
+        }
+        th {
+            background: #f4f4f4;
+        }
+        tr.overdue-row {
+            background: #ffeaea;
+        }
+        .no-tasks {
+            text-align: center;
+            color: #888;
+            margin: 30px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="overdue-container">
+        <h2 class="overdue-title">Overdue Tasks</h2>
+        {% if tasks and tasks|length > 0 %}
+        <table>
+            <tr>
+                <th>Title</th>
+                <th>Assigned To</th>
+                <th>Status</th>
+                <th>Due Date</th>
+            </tr>
+            {% for task in tasks %}
+            <tr class="overdue-row">
+                <td>{{ task.title }}</td>
+                <td>{{ task.assigned_to }}</td>
+                <td>{{ task.status }}</td>
+                <td>{{ task.due_date }}</td>
+            </tr>
+            {% endfor %}
+        </table>
+        {% else %}
+        <div class="no-tasks">No overdue tasks!</div>
+        {% endif %}
+        <div style="text-align:center; margin-top:20px;">
+            <a href="{{ url_for('index') }}">&larr; Back to Dashboard</a>
+        </div>
+    </div>
+</body>
+</html>

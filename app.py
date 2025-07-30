@@ -1,7 +1,9 @@
+from datetime import datetime
 from flask import Flask, render_template, request, redirect, flash, session, url_for
 from datetime import datetime, timedelta
 import sqlite3
 from werkzeug.security import generate_password_hash, check_password_hash
+from datetime import datetime
 from models import init_db
 
 app = Flask(__name__)
@@ -74,6 +76,20 @@ def add():
     conn.close()
     return redirect('/')
 
+@app.route('/overdue')
+def overdue_dashboard():
+    if 'username' not in session:
+        flash('You must be logged in to view overdue tasks.')
+        return redirect(url_for('login'))
+    conn = get_db_connection()
+    today = datetime.today().date()
+    if session.get('role') == 'admin':
+        tasks = conn.execute('SELECT * FROM tasks WHERE due_date < ? AND status != ? ORDER BY due_date ASC', (today, 'Done')).fetchall()
+    else:
+        username = session.get('username')
+        tasks = conn.execute('SELECT * FROM tasks WHERE assigned_to = ? AND due_date < ? AND status != ? ORDER BY due_date ASC', (username, today, 'Done')).fetchall()
+    conn.close()
+    return render_template('overdue.html', tasks=tasks)
 @app.route('/filter/<status>')
 def filter_tasks(status):
     conn = get_db_connection()
